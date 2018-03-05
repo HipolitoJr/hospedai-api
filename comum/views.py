@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.serializers import get_serializer
 from rest_framework import viewsets, authentication, permissions, status
 
 # Create your views here.
@@ -116,7 +117,7 @@ class HospedagemViewSet(DefaultMixin, viewsets.ModelViewSet):
     def dar_baixa(self, hotel_pk, hospedagem_pk):
         hospedagem = Hospedagem.objects.get(pk = hospedagem_pk)
         hospedagem.dar_baixa()
-        serializer = self.get_serializer_class(hospedagem)
+        serializer = get_serializer(hospedagem)
 
         return Response(serializer.data)
 

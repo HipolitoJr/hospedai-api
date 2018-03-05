@@ -24,7 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        usuario = User.objects.create_user(username=validated_data['username'], password=validated_data['password'])
+        usuario = User.objects.create_user(**validated_data)
         usuario.save()
 
         return usuario
@@ -43,7 +43,7 @@ class HotelUnicoSerializer(serializers.ModelSerializer):
                   'valor_diaria',
                   'endereco',)
 
-        read_only_fields = ('id', 'clientes_hotel', 'usuario',)
+        read_only_fields = ('id', 'clientes_hotel', 'hospedagens', 'usuario',)
 
 
 class HospedeSerializer(serializers.ModelSerializer):
@@ -75,14 +75,12 @@ class HospedeSerializer(serializers.ModelSerializer):
 
 class HospedagemSerializer(serializers.ModelSerializer):
 
-    clientes = HospedeSerializer(many=False,
-                                 read_only=True)
+    #hospede = HospedeSerializer(many=False)
 
     class Meta:
         model = Hospedagem
         fields = ('id',
                   'status',
-                  'clientes',
                   'hospede',
                   'valor_debito_atual',
                   'data_checkin',
@@ -96,10 +94,6 @@ class HospedagemSerializer(serializers.ModelSerializer):
         hospede = validated_data['hospede']
 
         try:
-            if hospede.hotel.id != hotel_pk:
-                print(hospede.hotel.id, hotel_pk)
-                raise exceptions.NotAcceptable(detail='Hotel invalido!')
-
             hotel = Hotel.objects.get(pk=hotel_pk)
             hospedagem = Hospedagem.objects.create(hotel=hotel, hospede=hospede)
             return hospedagem
