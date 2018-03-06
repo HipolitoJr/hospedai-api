@@ -55,7 +55,9 @@ class HospedeSerializer(serializers.ModelSerializer):
                   'cpf',
                   'telefone',
                   'email',
-                  'endereco',)
+                  'endereco',
+                  'is_hospedado',
+                  'qtd_hospedagens')
 
         read_only_fields = ('id','hotel',)
 
@@ -73,9 +75,37 @@ class HospedeSerializer(serializers.ModelSerializer):
             raise exceptions.NotAcceptable(detail='Não foi possível adicionar o Hospede.')
 
 
+class HospedagemPostSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Hospedagem
+        fields = ('id',
+                  'status',
+                  'valor_debito_atual',
+                  'data_checkin',
+                  'data_checkout',)
+
+        read_only_fields = ('id', 'status',)
+
+    def create(self, validated_data):
+
+        hotel_pk = self.context.get('hotel_pk')
+        hospede_pk = self.context.get('hospede_pk')
+
+        try:
+            hotel = Hotel.objects.get(pk=hotel_pk)
+            hospede = Hospede.objects.get(pk=hospede_pk)
+            hospedagem = Hospedagem.objects.create(hotel=hotel, hospede=hospede)
+            return hospedagem
+        except Hotel.DoesNotExist or Hospede.DoesNotExist:
+            raise exceptions.NotFound(detail='Hotel ou Hospede não localizado.')
+        except:
+            raise exceptions.NotAcceptable(detail='Não foi possível adicionar a Hospedagem.')
+
+
 class HospedagemSerializer(serializers.ModelSerializer):
 
-    #hospede = HospedeSerializer(many=False)
+    hospede = HospedeSerializer(many=False)
 
     class Meta:
         model = Hospedagem
@@ -87,20 +117,6 @@ class HospedagemSerializer(serializers.ModelSerializer):
                   'data_checkout',)
 
         read_only_fields = ('id', 'status',)
-
-    def create(self, validated_data):
-
-        hotel_pk = self.context.get('hotel_pk')
-        hospede = validated_data['hospede']
-
-        try:
-            hotel = Hotel.objects.get(pk=hotel_pk)
-            hospedagem = Hospedagem.objects.create(hotel=hotel, hospede=hospede)
-            return hospedagem
-        except Hotel.DoesNotExist or Hospede.DoesNotExist:
-            raise exceptions.NotFound(detail='Hotel ou Hospede não localizado.')
-        except:
-            raise exceptions.NotAcceptable(detail='Não foi possível adicionar a Hospedagem.')
 
 
 class HotelSerializer(serializers.ModelSerializer):

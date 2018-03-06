@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from comum.models import Hotel, Hospede, Hospedagem
 from comum.serializers import HotelUnicoSerializer, HospedeSerializer, HospedagemSerializer, HotelSerializer, \
-    UserSerializer
+    UserSerializer, HospedagemPostSerializer
 
 User = get_user_model()
 
@@ -88,6 +88,20 @@ class HospedeViewSet(DefaultMixin, viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class HospedagemPostViewSet(DefaultMixin, viewsets.ModelViewSet):
+
+    queryset = Hospedagem.objects.order_by('id')
+    serializer_class = HospedagemPostSerializer
+
+    def create(self, request, pk, hospede_pk, *args, **kwargs):
+        serializer = HospedagemPostSerializer(data=request.data,
+                                         context={'hotel_pk': pk, 'hospede_pk': hospede_pk})
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class HospedagemViewSet(DefaultMixin, viewsets.ModelViewSet):

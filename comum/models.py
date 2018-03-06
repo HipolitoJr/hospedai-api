@@ -28,6 +28,14 @@ class Hospede(models.Model):
 
     hotel = models.ForeignKey('Hotel', related_name='clientes_hotel', on_delete=models.CASCADE, blank=True, null=True)
 
+    def is_hospedado(self):
+        query_set = Hospedagem.objects.filter(hospede=self, status='aberta')
+        return True if len(query_set) > 0 else False
+
+    def qtd_hospedagens(self):
+        query_set = Hospedagem.objects.filter(hospede=self, status='fechada')
+        return len(query_set)
+
     def __str__(self):
         return self.nome
 
@@ -44,7 +52,7 @@ class Hospedagem(models.Model):
     status = models.CharField('Status', max_length=255, choices=TIPO_STATUS, default='aberta', blank=False, null=False)
     valor_debito = models.FloatField('Valor debito', blank=True, null=True)
 
-    hospede = models.OneToOneField('Hospede', on_delete=models.SET_NULL, blank=True, null=True)
+    hospede = models.ForeignKey('Hospede', on_delete=models.SET_NULL, blank=True, null=True)
     hotel = models.ForeignKey('Hotel', related_name='hospedagens', on_delete=models.CASCADE, blank=True, null=True)
 
     def dar_baixa(self):
